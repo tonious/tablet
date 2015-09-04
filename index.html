@@ -65,10 +65,9 @@ function updateSolid()
 <div id="viewer"></div>
 <textarea id="code">
 function main(params) {
-  var raspi = new RaspberryPi();
 
   var screen = screen_csg().translate([0,-4,0]);
-  var board = raspi.modelbplus_csg().rotateZ(180).translate([60,0,-28]);
+  var board = RaspberryPi.modelbplus_csg().rotateZ(180).translate([60,0,-28]);
   var battery = battery_csg().rotateZ(90).translate([45,32,-14]);
 
   var tab = new Tablet();

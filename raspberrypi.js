@@ -2,7 +2,45 @@ function RaspberryPi() {
 
 }
 
-RaspberryPi.prototype.picam_csg = function() {
+RaspberryPi.resolution=12;
+RaspberryPi.modelbplus_drill=2.75;
+RaspberryPi.modelbplus_holes=[
+  [3.5,3.5],
+  [61.5,3.5],
+  [3.5,52.5],
+  [61.5,52.5],
+];
+
+RaspberryPi.picam_holes=[
+  [2,9.5],
+  [23,9.5],
+  [2,22],
+  [23,22],
+];
+
+RaspberryPi.picambosses_csg = function() {
+  this.picam_holes.forEach(function(position){
+    cag = cag.union(CAG.circle({
+      center: position,
+      radius: 6/2,
+      resolution: this.resolution 
+    }));
+
+    cag = cag.subtract(CAG.circle({
+      center: position,
+      radius: drill,
+      resolution: this.resolution 
+    }));
+  }
+
+  csg = cag.extrude({
+    offset: [0, 0, 20],
+  });
+
+  return(csg);
+}
+
+RaspberryPi.picam_csg = function() {
   /*
    * Dimensions from:
    * 
@@ -21,34 +59,20 @@ RaspberryPi.prototype.picam_csg = function() {
     corner2: [25, 24]
   }); 
 
-  cag = cag.subtract(CAG.circle({
-    center: [2,9.5],
-    radius: 2.0/2,
-    resolution: 8
-  }));
+  this.picam_holes.forEach(function(position){
+    cag = cag.subtract(CAG.circle({
+      center: position,
+      radius: 2.0/2,
+      resolution: this.resolution
+    }));
+  }
 
-  cag = cag.subtract(CAG.circle({
-    center: [23,9.5],
-    radius: 2.0/2,
-    resolution: 8
-  }));
-
-  cag = cag.subtract(CAG.circle({
-    center: [2,22],
-    radius: 2.0/2,
-    resolution: 8
-  }));
-
-  cag = cag.subtract(CAG.circle({
-    center: [23,22],
-    radius: 2.0/2,
-    resolution: 8
-  }));
-
+  // Extrude PCB
   csg = csg.union(cag.extrude({
     offset: [0, 0, 1],
   }).setColor(0,0.5,0));
 
+  // Connectors
   csg = csg.union(CSG.cube({
     corner1: [8.5,13.5,1],
     corner2: [16.5,22,2],
@@ -59,113 +83,61 @@ RaspberryPi.prototype.picam_csg = function() {
     corner2: [16.5,13.5,4],
   }).setColor(0.3,0.3,0.3));
 
+  // Camera
   csg = csg.union(CSG.cylinder({
     start: [12.5,9.5,4],
     end: [12.5,9.5,6.5],
     radius: 4,
-    resolution: 16
+    resolution: this.resolution
   }).setColor(0.3,0.3,0.3));
 
   csg = csg.subtract(CSG.cylinder({
     start: [12.5,9.5,5],
     end: [12.5,9.5,6.5],
     radius: 2,
-    resolution: 16
-
+    resolution: this.resolution
   }).setColor(0.3,0.3,0.3));
 
-  // Mounting bosses.
-  cag = CAG.circle({
-    center: [2,9.5],
-    radius: 6/2,
-    resolution: 8
-  });
 
-  cag = cag.union(CAG.circle({
-    center: [23,9.5],
-    radius: 6/2,
-    resolution: 8
-  }));
-
-  cag = cag.union(CAG.circle({
-    center: [2,22],
-    radius: 6/2,
-    resolution: 8
-  }));
-
-  cag = cag.union(CAG.circle({
-    center: [23,22],
-    radius: 6/2,
-    resolution: 8
-  }));
-
-  cag = cag.union(CAG.circle({
-    center: [2,-3],
-    radius: 6/2,
-    resolution: 8
-  }));
-
-  cag = cag.union(CAG.circle({
-    center: [23,-3],
-    radius: 6/2,
-    resolution: 8
-  }));
-
-  cag = cag.subtract(CAG.circle({
-    center: [2,-3],
-    radius: drill,
-    resolution: 8
-  }));
-
-  cag = cag.subtract(CAG.circle({
-    center: [23,-3],
-    radius: drill,
-    resolution: 8
-  }));
-
-  cag = cag.subtract(CAG.circle({
-    center: [2,9.5],
-    radius: drill,
-    resolution: 8
-  }));
-
-  cag = cag.subtract(CAG.circle({
-    center: [23,9.5],
-    radius: drill,
-    resolution: 8
-  }));
-
-
-  cag = cag.subtract(CAG.circle({
-    center: [2,22],
-    radius: drill,
-    resolution: 8
-  }));
-
-  cag = cag.subtract(CAG.circle({
-    center: [23,22],
-    radius: drill,
-    resolution: 8
-  }));
-
-  csg.properties.bosses = cag.extrude({
-    offset: [0, 0, 20],
-  }).translate([0,0,1]);
-
+  csg.properties.bosses = this.picambosses_csg().translate([0,0,1]);
   // Camera cutout.
 
   csg.properties.camera_clearance = CSG.cylinder({
     start: [12.5,9.5,4],
     end: [12.5,9.5,25],
     radius: 5,
-    resolution: 16
+    resolution: this.resolution
   });
-
 
   return( csg );
 }
 
-RaspberryPi.prototype.modelbplus_csg = function() {
+RaspberryPi.modelbplusbosses_csg = function(thickness) {
+  var csg = new CSG();
+
+  this.modelbplus_holes.forEach(function(position){
+    cag = cag.union(CAG.circle({
+      center: position,
+      radius: 8/2,
+      resolution: 8
+    }));
+
+    cag = cag.subtract(CAG.circle({
+      center: position,
+      radius: this.drill,
+      resolution: this.resolution
+    }));
+  });
+
+
+  csg=cag.extrude({
+    offset: [0, 0, -thickness],
+  });
+
+  return(csg);
+}
+
+RaspberryPi.modelbplus_csg = function() {
   /*
    * Dimensions from:
    *
@@ -186,29 +158,13 @@ RaspberryPi.prototype.modelbplus_csg = function() {
     roundradius: 3
   }); 
 
-  cag = cag.subtract(CAG.circle({
-    center: [3.5,3.5],
-    radius: 2.75/2,
-    resolution: 8
-  }));
-
-  cag = cag.subtract(CAG.circle({
-    center: [61.5,3.5],
-    radius: 2.75/2,
-    resolution: 8
-  }));
-
-  cag = cag.subtract(CAG.circle({
-    center: [3.5,52.5],
-    radius: 2.75/2,
-    resolution: 8
-  }));
-
-  cag = cag.subtract(CAG.circle({
-    center: [61.5,52.5],
-    radius: 2.75/2,
-    resolution: 8
-  }));
+  this.modelbplus_holes.forEach(function(position){
+    cag = cag.subtract(CAG.circle({
+      center: position,
+      radius: 2.75/2,
+      resolution: 8
+    }));
+  });
 
   csg = csg.union(cag.extrude({
     offset: [0, 0, 1.6],
@@ -252,61 +208,7 @@ RaspberryPi.prototype.modelbplus_csg = function() {
     radius: [15.1/2, 11.4/2, 6.15/2]
   }).setColor(0.8,0.8,0.8));
 
-  // Mounting Bosses
-  cag = CAG.circle({
-    center: [3.5,3.5],
-    radius: 8/2,
-    resolution: 8
-  });
-
-  cag = cag.union(CAG.circle({
-    center: [61.5,3.5],
-    radius: 8/2,
-    resolution: 8
-  }));
-
-  cag = cag.union(CAG.circle({
-    center: [3.5,52.5],
-    radius: 8/2,
-    resolution: 8
-  }));
-
-  cag = cag.union(CAG.circle({
-    center: [61.5,52.5],
-    radius: 8/2,
-    resolution: 8
-  }));
-
-  cag = cag.subtract(CAG.circle({
-    center: [3.5,3.5],
-    radius: drill,
-    resolution: 8
-  }));
-
-  cag = cag.subtract(CAG.circle({
-    center: [61.0,3.5],
-    radius: drill,
-    resolution: 8
-  }));
-
-  cag = cag.subtract(CAG.circle({
-    center: [3.5,52.5],
-    radius: drill,
-    resolution: 8
-  }));
-
-  cag = cag.subtract(CAG.circle({
-    center: [61.0,52.5],
-    radius: drill,
-    resolution: 8
-  }));
-
-
-  csg.properties.bosses = cag.extrude({
-    offset: [0, 0, -20],
-  });
-
-
+  csg.properties.bosses = this.modelbplusbosses_csg(5);
 
   return( csg );
 }
