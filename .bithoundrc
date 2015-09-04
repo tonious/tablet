@@ -1,0 +1,7 @@
+{
+  "ignore": [
+    "csg.js",
+    "lightgl.js",
+    "openjscad.js"
+  ]
+}
