@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+
+<html><head>
+  <script src="lightgl.js"></script>
+  <script src="csg.js"></script>
+  <script src="openjscad.js"></script>
+  <style>
+
+body {
+  font: 14px/20px 'Helvetica Neue Light', HelveticaNeue-Light, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 10px;
+}
+
+pre, code, textarea {
+  font: 12px/20px Monaco, monospace;
+  border: 1px solid #CCC;
+  border-radius: 3px;
+  background: #F9F9F9;
+  padding: 0 3px;
+  color: #555;
+}
+pre, textarea {
+  padding: 10px;
+  width: 100%;
+}
+textarea {
+  height: 200px;
+}
+textarea:focus {
+  outline: none;
+}
+
+canvas { cursor: move; }
+
+  </style>
+<link rel="stylesheet" href="openjscad.css" type="text/css">
+
+<script>
+
+var gProcessor=null;
+
+// Show all exceptions to the user:
+OpenJsCad.AlertUserOfUncaughtExceptions();
+
+function onload()
+{
+  gProcessor = new OpenJsCad.Processor(document.getElementById("viewer"));
+  gProcessor.addLibrary('utils.js');
+  gProcessor.addLibrary('raspberrypi.js');
+  gProcessor.addLibrary('adafruit.js');
+  gProcessor.addLibrary('fasteners.js');
+  gProcessor.addLibrary('tablet.js');
+  updateSolid();
+}
+
+function updateSolid()
+{
+  gProcessor.setJsCad(document.getElementById('code').value);
+}
+</script>
+</head>
+<body onload="onload()">
+<div id="viewer"></div>
+<textarea id="code">
+function main(params) {
+  var raspi = new RaspberryPi();
+
+  var screen = screen_csg().translate([0,-4,0]);
+  var board = raspi.modelbplus_csg().rotateZ(180).translate([60,0,-28]);
+  var battery = battery_csg().rotateZ(90).translate([45,32,-14]);
+
+  var tab = new Tablet();
+
+  tab.pi=board;
+  tab.display=screen;
+  tab.battery=battery;
+
+  var topcase = tab.topcase_csg();
+  var middlecase = tab.middlecase_csg();
+  var bottomcase = tab.bottomcase_csg();
+  var barbserts = tab.barbserts_csg();
+  var casescrews = tab.casescrews_csg();
+
+  var electronics=assemble([board,battery]);
+  var assembly=[casescrews,bottomcase,electronics,middlecase,screen,barbserts,topcase];
+
+  var exploded=center(stack(assembly))
+  var assembled=center(assemble(assembly))
+
+  var plane = CSG.Plane.fromNormalAndPoint([-1,0,0], [0, 0, 0]);
+  var cut=assembled.cutByPlane(plane);
+
+  return [
+    {
+      name: "assembled",
+      caption: "Assembled.",
+      data: assembled
+    },
+    {
+      name: "exploded",
+      caption: "Exploded.",
+      data: exploded
+    },
+    {
+      name: "bottomfit",
+      caption: "Bottom case with electronics.",
+      data: center(assemble([casescrews,bottomcase,electronics]))
+    },
+    {
+      name: "cut",
+      caption: "Cut.",
+      data: cut
+    },
+    {
+      name: "topcase",
+      caption: "Top Case.",
+      data: topcase
+    },
+    {
+      name: "bottomcase",
+      caption: "Bottom Case.",
+      data: bottomcase 
+    },
+    {
+      name: "modelbplus",
+      caption: "Model B Plus.",
+      data: raspi.modelbplus_csg()
+    },
+    {
+      name: "ada7screen",
+      caption: "Adafruit 7 Screen",
+      data: screen
+    },
+  ];
+}
+</textarea><br>
+<input type="submit" value="Update" onclick="updateSolid(); return false;">
+<br><br>
+</body>
+</html>
