@@ -31,14 +31,14 @@ RaspberryPi.picambosses_csg = function() {
       radius: drill,
       resolution: this.resolution 
     }));
-  }
+  });
 
-  csg = cag.extrude({
+  var csg = cag.extrude({
     offset: [0, 0, 20],
   });
 
   return(csg);
-}
+};
 
 RaspberryPi.picam_csg = function() {
   /*
@@ -65,7 +65,7 @@ RaspberryPi.picam_csg = function() {
       radius: 2.0/2,
       resolution: this.resolution
     }));
-  }
+  });
 
   // Extrude PCB
   csg = csg.union(cag.extrude({
@@ -110,10 +110,11 @@ RaspberryPi.picam_csg = function() {
   });
 
   return( csg );
-}
+};
 
 RaspberryPi.modelbplusbosses_csg = function(thickness) {
   var csg = new CSG();
+  var cag = new CAG();
 
   this.modelbplus_holes.forEach(function(position){
     cag = cag.union(CAG.circle({
@@ -124,8 +125,8 @@ RaspberryPi.modelbplusbosses_csg = function(thickness) {
 
     cag = cag.subtract(CAG.circle({
       center: position,
-      radius: this.drill,
-      resolution: this.resolution
+      radius: 2.5/2,
+      resolution: 8
     }));
   });
 
@@ -135,7 +136,7 @@ RaspberryPi.modelbplusbosses_csg = function(thickness) {
   });
 
   return(csg);
-}
+};
 
 RaspberryPi.modelbplus_csg = function() {
   /*
@@ -211,4 +212,4 @@ RaspberryPi.modelbplus_csg = function() {
   csg.properties.bosses = this.modelbplusbosses_csg(5);
 
   return( csg );
-}
+};
