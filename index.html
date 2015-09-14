@@ -66,15 +66,17 @@ function updateSolid()
 <textarea id="code">
 function main(params) {
 
-  var screen = screen_csg().translate([0,-4,0]);
+  var screen = screen_csg();
   var board = RaspberryPi.modelbplus_csg().rotateZ(180).translate([60,0,-28]);
-  var battery = battery_csg().rotateZ(90).translate([45,32,-14]);
+  var charger = Adafruit.powerboost1000c_csg().rotateZ(90).translate([-50,3,-28]);
+  var battery = Adafruit.lipo6600_csg().rotateZ(90).translate([44,33,-18]);
 
   var tab = new Tablet();
 
   tab.pi=board;
   tab.display=screen;
   tab.battery=battery;
+  tab.charger=charger;
 
   var topcase = tab.topcase_csg();
   var middlecase = tab.middlecase_csg();
@@ -82,7 +84,7 @@ function main(params) {
   var barbserts = tab.barbserts_csg();
   var casescrews = tab.casescrews_csg();
 
-  var electronics=assemble([board,battery]);
+  var electronics=assemble([board,charger,battery]);
   var assembly=[casescrews,bottomcase,electronics,middlecase,screen,barbserts,topcase];
 
   var exploded=center(stack(assembly))

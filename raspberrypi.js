@@ -138,6 +138,25 @@ RaspberryPi.modelbplusbosses_csg = function(thickness) {
   return(csg);
 };
 
+RaspberryPi.modelbpluspegs_csg= function(thickness) {
+  var csg = new CSG();
+
+  this.modelbplus_holes.forEach(function(position){
+    csg = csg.union(CSG.cylinder({
+      start: position.concat(0),
+      end: position.concat(-thickness),
+      radius: 6/2,
+    }));
+    csg = csg.union(CSG.cylinder({
+      start: position.concat(0),
+      end: position.concat(1.5),
+      radius: 2.5/2,
+    }));
+  });
+
+  return(csg);
+};
+
 RaspberryPi.modelbplus_csg = function() {
   /*
    * Dimensions from:
@@ -168,29 +187,29 @@ RaspberryPi.modelbplus_csg = function() {
   });
 
   csg = csg.union(cag.extrude({
-    offset: [0, 0, 1.6],
+    offset: [0, 0, 1.8],
   }).setColor(0,0.5,0));
 
   // Ethernet
   csg = csg.union(CSG.cube({
-    center: [85+2-21.8/2, 10.25, 13.5/2+1.6],
-    radius: [21.8/2+2, 16.5/2, 13.5/2]
+    center: [85+2-21.8/2, 10.25, 14.0/2+1.8],
+    radius: [21.8/2+2, 16.5/2, 14.0/2]
   }).setColor(0.8,0.8,0.8));
 
   // USB 
   csg = csg.union(CSG.cube({
-    center: [85+2-17.2/2, 29, 16/2+1.6],
-    radius: [17.2/2+2, 15.5/2, 16/2]
+    center: [85+2-17.2/2, 29, 16.4/2+1.8],
+    radius: [17.2/2+2, 15.8/2, 16.4/2]
   }).setColor(0.8,0.8,0.8));
 
   csg = csg.union(CSG.cube({
-    center: [85+2-17.2/2, 47, 16/2+1.6],
-    radius: [17.2/2+2, 15.5/2, 16/2]
+    center: [85+2-17.2/2, 47, 16.4/2+1.8],
+    radius: [17.2/2+2, 15.8/2, 16.4/2]
   }).setColor(0.8,0.8,0.8));
 
   // MicroUSB (power)
   csg = csg.union(CSG.cube({
-    center: [10.6, 5.6/2-1, 2.4/2+1.6],
+    center: [10.6, 5.6/2-1, 2.4/2+1.8],
     radius: [7.6/2, 5.6/2, 2.4/2]
   }).setColor(0.8,0.8,0.8));
 
@@ -209,7 +228,51 @@ RaspberryPi.modelbplus_csg = function() {
     radius: [15.1/2, 11.4/2, 6.15/2]
   }).setColor(0.8,0.8,0.8));
 
-  csg.properties.bosses = this.modelbplusbosses_csg(5);
+  clearance = new CSG();
+  clearance = clearance.union(csg);
+ 
+  // Pins for USB + Ethernet.
+  clearance = clearance.union(
+    CAG.roundedRectangle({
+      corner1: [82, 55],
+      corner2: [65, 1],
+      roundradius: 1 
+    }).extrude({offset:[0,0,-2.4]})
+  );
+
+  // Expansion port pins.
+  clearance = clearance.union(
+    CAG.roundedRectangle({
+      corner1: [7, 55],
+      corner2: [58, 50],
+      roundradius: 1 
+    }).extrude({offset:[0,0,-2.4]})
+  );
+
+  // MicroSD card. 
+  clearance = clearance.union(
+    CAG.roundedRectangle({
+      center: [0, 56/2+0.75],
+      radius: [14, 7],
+      roundradius: 1 
+    }).extrude({offset:[0,0,-2]})
+  );
+
+
+  var clips=new CSG();
+  [ utils.holddown_csg().rotateZ(90).translate([3.5,0,-2.4]),
+    utils.holddown_csg().rotateZ(90).translate([61.5,0,-2.4]),
+    utils.holddown_csg().rotateZ(-90).translate([3.5,56,-2.4]),
+    utils.holddown_csg().rotateZ(-90).translate([61.5,56,-2.4]) 
+  ].forEach(function(clip){
+    clips=clips.union(clip);
+    clearance=clearance.union(clip.properties.clearance);
+  });
+
+  csg.properties.clips = clips;
+  csg.properties.clearance = clearance;
+  csg.properties.bosses = this.modelbplusbosses_csg(4);
+  csg.properties.pegs = this.modelbpluspegs_csg(3);
 
   return( csg );
 };

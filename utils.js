@@ -1,3 +1,5 @@
+utils = {};
+
 function hex_csg(across_flats,thickness) {
   var radius = (2*Math.sqrt(3)/3 * across_flats)/2;
   var points = [];
@@ -13,7 +15,6 @@ function hex_csg(across_flats,thickness) {
 
   return(hex);
 }
-
 
 function center(obj) {
   return( obj.translate([
@@ -36,3 +37,53 @@ function stack(objs) {
     return(previousValue.union(currentValue.translate([0,0,z])));
   }));
 }
+
+utils.holddown_csg = function() {
+  var height=2.4+2;
+  var width=3;
+  var thickness=1.5;
+  var overhang=0.5;
+  var bevel=1/2;
+  var topthick=1.4;
+
+  var cag = CAG.fromPoints([
+    [0,0],
+    [0,height-bevel],
+    [bevel,height],
+    [bevel+overhang,height],
+    [bevel+overhang-thickness,height+topthick],
+    [-thickness,height+topthick],
+    [-thickness,0]
+  ]);
+
+  var csg=cag.extrude({offset: [0,0,width]});
+  csg=csg.translate([0,0,-width/2]);
+  csg=csg.rotateX(90);
+
+  cag=CAG.roundedRectangle({
+    center: [-thickness/2,0],
+    radius: [(thickness+1)/2, (width+1)/2],
+    roundradius: 1
+  });
+
+  csg.properties.clearance=cag.extrude({offset:[0,0,height]});
+
+  return(csg);
+};
+
+utils.peg_csg = function(radius,height,pcbthickness) {
+  var csg = new CSG();
+
+  csg = csg.union(CSG.cylinder({
+    start: [0,0,0],
+    end: [0,0,-height],
+    radius: radius+1,
+  }));
+  csg = csg.union(CSG.cylinder({
+    start: [0,0,0],
+    end: [0,0,pcbthickness],
+    radius: radius,
+  }));
+
+  return(csg);
+};

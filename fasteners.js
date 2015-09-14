@@ -1,5 +1,5 @@
 fasteners = function() {
-}
+};
 
 fasteners.resolution = 12;
 fasteners.head_clearance=0.5;
@@ -74,16 +74,16 @@ fasteners.table = {
     'barbsert_or':      0.335/2 * 25.4,
     'barbsert_length':  0.500   * 25.4
   },
-}
+};
 
 fasteners.panhead_csg = function(params) {
-  var chamfer = params['head_height']/2;
+  var chamfer = params.head_height/2;
   var chamfer_radius2 = Math.cos(Math.PI/6)*chamfer;
   var chamfer_radius = Math.cos(2*Math.PI/6)*chamfer;
 
-  var head_height = params['head_height'];
-  var head_radius = params['head_radius'];
-  var socket = params['socket'];
+  var head_height = params.head_height;
+  var head_radius = params.head_radius;
+  var socket = params.socket;
   var resolution = 16;
 
   var csg = new CSG();
@@ -125,7 +125,7 @@ fasteners.panhead_csg = function(params) {
   }));
 
   return(csg);
-}
+};
 
 fasteners.machinescrew_csg = function(size,length) {
 
@@ -136,7 +136,7 @@ fasteners.machinescrew_csg = function(size,length) {
   screw = screw.union(CSG.cylinder({
     start: [0, 0, 0.1],
     end:   [0, 0, -length],
-    radius: params['pitch_radius'],
+    radius: params.pitch_radius,
     resolution: this.resolution,
   }));
 
@@ -145,14 +145,14 @@ fasteners.machinescrew_csg = function(size,length) {
   screw.properties.clearance = CSG.cylinder({
     start: [0, 0, 0.1],
     end:   [0, 0, -length],
-    radius: params['clearance_radius'],
+    radius: params.clearance_radius,
     resolution: this.resolution,
   });
 
   screw.properties.clearance = screw.properties.clearance.union( CSG.cylinder({
     start: [0, 0, 0],
-    end:   [0, 0, params['head_height']],
-    radius: params['head_radius']+this.head_clearance,
+    end:   [0, 0, params.head_height],
+    radius: params.head_radius+this.head_clearance,
   }));
 
 
@@ -166,15 +166,15 @@ fasteners.hexnut_csg = function(size) {
   var params = this.table[size];
 
   var nut = hex_csg(
-    params['nut_flats'],
-    params['nut_thickness'],
+    params.nut_flats,
+    params.nut_thickness,
     0
   );
 
   nut = nut.subtract(CSG.cylinder({
     start: [0,0,-1],
-    end: [0,0,params['nut_thickness']+1],
-    radius: params['major_radius'],
+    end: [0,0,params.nut_thickness+1],
+    radius: params.major_radius,
     resolution: this.resolution,
   }));
 
@@ -190,22 +190,22 @@ fasteners.barbsert_csg = function(size) {
 
   var csg = CSG.cylinder({
     start: [0,0,0.1],
-    end: [0,0,-params['barbsert_length']],
-    radius: params['barbsert_or'],
+    end: [0,0,-params.barbsert_length],
+    radius: params.barbsert_or,
     resolution: this.resolution,
   });
 
   csg = csg.subtract(CSG.cylinder({
     start: [0,0,1],
-    end: [0,0,-params['barbsert_length']-1],
-    radius: params['major_radius'],
+    end: [0,0,-params.barbsert_length-1],
+    radius: params.major_radius,
     resolution: this.resolution,
   }));
 
   csg.properties.hole = CSG.cylinder({
     start: [0,0,0],
-    end: [0,0,-params['barbsert_length']],
-    radius: params['barbsert_radius'],
+    end: [0,0,-params.barbsert_length],
+    radius: params.barbsert_radius,
     resolution: this.resolution,
   });
 

@@ -2,9 +2,10 @@ function Tablet() {
   this.display = null;
   this.battery = null;
   this.pi = null;
+  this.charger = null;
 
   // Outside exterior dimensions.
-  this.width=184;
+  this.width=180;
   this.height=130;
   this.thickness=2; // Wall thickness.
   this.caserad=8; // Corner curve radius.
@@ -57,7 +58,7 @@ Tablet.prototype.topcase_csg = function() {
     offset: [0, 0, -this.topdepth],
   }).translate([0,0,1])); 
 
-  var cag = CAG.roundedRectangle({
+  cag = CAG.roundedRectangle({
     corner1: [-this.width/2+this.thickness, -this.height/2+this.thickness],
     corner2: [ this.width/2-this.thickness,  this.height/2-this.thickness],
     roundradius: this.caserad-this.thickness
@@ -118,7 +119,7 @@ Tablet.prototype.topcase_csg = function() {
   var boss = CSG.cylinder({
     start: [0,0,0],
     end:   [0,0,-this.topdepth+this.bezel],
-    radius: barbsert.properties.params['barbsert_radius'] + this.bossthickness
+    radius: barbsert.properties.params.barbsert_radius+this.bossthickness
   });
 
   boss=boss.subtract(
@@ -155,7 +156,7 @@ Tablet.prototype.casescrews_csg = function() {
   var csg = new CSG();
   var screw = fasteners.machinescrew_csg(this.screwsize,this.screwlength);
 
-  screw=screw.rotateY(180).translate([0,0,-this.topdepth-this.bottomdepth+this.bezel+screw.properties.params['head_height']-this.middledepth]);
+  screw=screw.rotateY(180).translate([0,0,-this.topdepth-this.bottomdepth+this.bezel+screw.properties.params.head_height-this.middledepth]);
 
   this.screws.forEach(function(position){
     csg=csg.union(screw.translate(position)); 
@@ -193,7 +194,7 @@ Tablet.prototype.cornerbuild_cag = function() {
  */
 
   return(cag);
-}
+};
 
 Tablet.prototype.cornerbuild_csg = function() {
   csg = new CSG();
@@ -204,7 +205,7 @@ Tablet.prototype.cornerbuild_csg = function() {
 
 
   return(csg);
-}
+};
 
 Tablet.prototype.cornercutout_csg = function() {
   csg = new CSG();
@@ -225,7 +226,7 @@ Tablet.prototype.cornercutout_csg = function() {
   }).translate([-this.width/2+this.cutoutwidth/2,-this.height/2+this.cutoutheight/2,-this.bottomdepth]);
 
   return(csg);
-}
+};
 
 Tablet.prototype.cornercutoutinside_csg = function() {
   csg = new CSG();
@@ -276,10 +277,7 @@ Tablet.prototype.cornercutoutinside_csg = function() {
   }).translate([-this.width/2+this.cutoutwidth/2,-this.height/2+this.cutoutheight/2,-this.bottomdepth]);
 
   return(csg);
-}
-
-
-
+};
 
 Tablet.prototype.bottomcase_csg = function() {
   csg = new CSG();
@@ -290,18 +288,17 @@ Tablet.prototype.bottomcase_csg = function() {
     roundradius: this.caserad
   }); 
 
-  var cag = cag.subtract(CAG.roundedRectangle({
+  cag = cag.subtract(CAG.roundedRectangle({
     corner1: [-this.width/2+this.thickness, -this.height/2+this.thickness],
     corner2: [ this.width/2-this.thickness,  this.height/2-this.thickness],
     roundradius: this.caserad-this.thickness
   })); 
 
-
   csg=csg.union(cag.extrude({
     offset: [0, 0, -this.bottomdepth],
   }));
 
-  var cag = CAG.roundedRectangle({
+  cag = CAG.roundedRectangle({
     corner1: [-this.width/2, -this.height/2],
     corner2: [ this.width/2,  this.height/2],
     roundradius: this.caserad
@@ -315,25 +312,25 @@ Tablet.prototype.bottomcase_csg = function() {
   var bossbuild = new CSG();
   var bosscut = new CSG();
   var screw = fasteners.machinescrew_csg(this.screwsize, this.screwlength);
-  var screwbase = -this.bottomdepth+screw.properties.params['head_height'];
+  var screwbase = -this.bottomdepth+screw.properties.params.head_height;
 
   var boss = CSG.cylinder({
     start: [0,0,-this.bottomdepth],
     end:   [0,0,0],
-    radius: screw.properties.params['clearance_radius'] + this.bossthickness
+    radius: screw.properties.params.clearance_radius + this.bossthickness
   });
   boss=boss.union(CSG.cylinder({
     start: [0,0,-this.bottomdepth],
     end:   [0,0,screwbase],
-    radiusStart: screw.properties.params['head_radius'] + this.bossthickness,
-    radiusEnd: screw.properties.params['head_radius'] + this.bossthickness
+    radiusStart: screw.properties.params.head_radius + this.bossthickness,
+    radiusEnd: screw.properties.params.head_radius + this.bossthickness
   }));
 
   boss=boss.union(CSG.cylinder({
     start: [0,0,screwbase],
     end:   [0,0,screwbase+this.thickness],
-    radiusStart: screw.properties.params['head_radius'] + this.bossthickness,
-    radiusEnd: screw.properties.params['clearance_radius'] + this.bossthickness
+    radiusStart: screw.properties.params.head_radius + this.bossthickness,
+    radiusEnd: screw.properties.params.clearance_radius + this.bossthickness
   }));
 
   var screwclearance = screw.properties.clearance.rotateY(180).translate([0,0,screwbase]);
@@ -355,8 +352,16 @@ Tablet.prototype.bottomcase_csg = function() {
 
   csg=csg.translate([0,0,-this.topdepth+this.bezel-this.middledepth]);
 
-  csg=csg.subtract(this.pi);
-  csg=csg.union(this.pi.properties.bosses);
+  csg=csg.subtract(this.pi.properties.clearance);
+  csg=csg.union(this.pi.properties.pegs);
+  csg=csg.union(this.pi.properties.clips);
+
+  csg=csg.subtract(this.charger.properties.clearance);
+  csg=csg.union(this.charger.properties.pegs);
+  csg=csg.union(this.charger.properties.clips);
+
+  csg=csg.union(this.battery.properties.bracket);
+
 
   var plane = CSG.Plane.fromNormalAndPoint([0,0,-1], [0, 0, -this.bottomdepth-this.topdepth+this.bezel-this.middledepth]);
   csg=csg.cutByPlane(plane);
@@ -364,7 +369,7 @@ Tablet.prototype.bottomcase_csg = function() {
   csg=csg.setColor(0.35,0.35,0.35);
  
   return(csg);
-}
+};
 
 Tablet.prototype.middlecase_csg = function() {
   csg = new CSG();
@@ -386,16 +391,16 @@ Tablet.prototype.middlecase_csg = function() {
   var bossbuild = new CAG();
   var bosscut = new CAG();
   var screw = fasteners.machinescrew_csg(this.screwsize, this.screwlength);
-  var screwbase = -this.bottomdepth+screw.properties.params['head_height'];
+  var screwbase = -this.bottomdepth+screw.properties.params.head_height;
 
   var boss = CAG.circle({
     center: [0,0],
-    radius: screw.properties.params['clearance_radius'] + this.bossthickness
+    radius: screw.properties.params.clearance_radius + this.bossthickness
   });
 
   var screwclearance = CAG.circle({
     center: [0,0],
-    radius: screw.properties.params['clearance_radius']
+    radius: screw.properties.params.clearance_radius
   });
 
   this.screws.forEach(function(position){
@@ -410,7 +415,7 @@ Tablet.prototype.middlecase_csg = function() {
     }
   });
 
-  var edgedis=screw.properties.params['clearance_radius'] + this.bossthickness;
+  var edgedis=screw.properties.params.clearance_radius + this.bossthickness;
 
   var cornerfill = CAG.fromPoints([
     [-edgedis,0],
@@ -443,5 +448,5 @@ Tablet.prototype.middlecase_csg = function() {
   csg=csg.setColor(1,0.75,0);
   return(csg);
 
-}
+};
 
