@@ -146,7 +146,6 @@ Adafruit.lipo6600_csg = function() {
 
   csg=csg.setColor(0,0,0.8);
 
-  csg.properties.clearance=new CSG();
 
   var ribthick=3;
   var offset=3;
@@ -164,12 +163,29 @@ Adafruit.lipo6600_csg = function() {
 
   rib = rib.subtract(cag.extrude({offset:[0,0,ribthick*2]}).rotateX(90).translate([0,ribthick,thickness/2]));
 
+  var loopwidth=5;
+  var loopthick=1;
+
+  var loopclearance=cag.extrude({offset:[0,0,loopwidth]}).rotateX(90).translate([0,loopwidth/2,thickness/2-offset]);
+
+  var loop=CSG.cube({ 
+    corner1: [-ribthick/2,-loopwidth/2-ribthick,-thickness/2],
+    corner2: [+ribthick/2,+loopwidth/2+ribthick,-thickness/2-ribthick]
+  });
+
+  loop=loop.subtract(CSG.cube({ 
+    corner1: [-ribthick/2,-loopwidth/2,-thickness/2-loopthick],
+    corner2: [+ribthick/2,+loopwidth/2,-thickness/2-ribthick] 
+  }));
   bracket = new CSG();
 
+  bracket=bracket.union(loop.translate([thickness,0,0]));
+  bracket=bracket.union(loop.translate([-thickness,0,0]));
   bracket=bracket.union(rib.translate([0,length*1/3,0]));
   bracket=bracket.union(rib.translate([0,length*-1/3,0]));
 
   csg.properties.bracket=bracket;
+  csg.properties.clearance=loopclearance;
 
   return(csg);
 };

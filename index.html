@@ -110,6 +110,11 @@ function main(params) {
       data: center(assemble([casescrews,bottomcase,electronics]))
     },
     {
+      name: "topfit",
+      caption: "Top case with hardware.",
+      data: center(assemble([middlecase,screen,barbserts,topcase]))
+    },
+    {
       name: "cut",
       caption: "Cut.",
       data: cut
@@ -120,19 +125,14 @@ function main(params) {
       data: topcase
     },
     {
+      name: "middlecase",
+      caption: "Middle Case.",
+      data: middlecase 
+    },
+    {
       name: "bottomcase",
       caption: "Bottom Case.",
       data: bottomcase 
-    },
-    {
-      name: "modelbplus",
-      caption: "Model B Plus.",
-      data: RaspberryPi.modelbplus_csg()
-    },
-    {
-      name: "ada7screen",
-      caption: "Adafruit 7 Screen",
-      data: screen
     },
   ];
 }

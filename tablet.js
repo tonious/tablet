@@ -77,9 +77,8 @@ Tablet.prototype.topcase_csg = function() {
     radius: [this.display.properties.width/2+this.thickness, this.display.properties.height/2+this.thickness, this.display.properties.thickness/2]
   }));
 
-/*
   // Corner tabs.
-  var cornersize=9;
+  var cornersize=15;
   var cornerthickness=1;
 
   var cx= this.display.properties.width/2+this.thickness;
@@ -95,7 +94,6 @@ Tablet.prototype.topcase_csg = function() {
 
   build=build.union(corner);
   build=build.union(corner.mirroredX());
- */
 
   // Adjust build as the visible display is somewhat off center.
   build.properties.center = new CSG.Connector(
@@ -360,6 +358,7 @@ Tablet.prototype.bottomcase_csg = function() {
   csg=csg.union(this.charger.properties.pegs);
   csg=csg.union(this.charger.properties.clips);
 
+  csg=csg.subtract(this.battery.properties.clearance);
   csg=csg.union(this.battery.properties.bracket);
 
 
