@@ -52,6 +52,7 @@ function onload()
   gProcessor.addLibrary('adafruit.js');
   gProcessor.addLibrary('fasteners.js');
   gProcessor.addLibrary('tablet.js');
+  gProcessor.addLibrary('components.js');
   updateSolid();
 }
 
@@ -68,8 +69,9 @@ function main(params) {
 
   var screen = screen_csg();
   var board = RaspberryPi.modelbplus_csg().rotateZ(180).translate([60,0,-28]);
-  var charger = Adafruit.powerboost1000c_csg().rotateZ(90).translate([-50,3,-28]);
-  var battery = Adafruit.lipo6600_csg().rotateZ(90).translate([44,33,-18]);
+  var charger = Adafruit.powerboost1000c_csg().rotateZ(90).translate([-60,2.5,-28]);
+  var battery = Adafruit.lipo6600_csg().rotateZ(90).translate([41,33,-18]);
+  var sw = Components.mhs1104_csg().rotateZ(180).rotateX(90).translate([-50,1,-25]);
 
   var tab = new Tablet();
 
@@ -77,6 +79,7 @@ function main(params) {
   tab.display=screen;
   tab.battery=battery;
   tab.charger=charger;
+  tab.sw=sw;
 
   var topcase = tab.topcase_csg();
   var middlecase = tab.middlecase_csg();
@@ -84,14 +87,14 @@ function main(params) {
   var barbserts = tab.barbserts_csg();
   var casescrews = tab.casescrews_csg();
 
-  var electronics=assemble([board,charger,battery]);
+  var electronics=assemble([board,charger,battery,sw]);
   var assembly=[casescrews,bottomcase,electronics,middlecase,screen,barbserts,topcase];
 
   var exploded=center(stack(assembly))
   var assembled=center(assemble(assembly))
 
-  var plane = CSG.Plane.fromNormalAndPoint([-1,0,0], [0, 0, 0]);
-  var cut=assembled.cutByPlane(plane);
+  var plane = CSG.Plane.fromNormalAndPoint([-1,0,0], [-83, 0, 0]);
+  var cut=bottomcase.cutByPlane(plane);
 
   return [
     {
