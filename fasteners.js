@@ -17,7 +17,8 @@ fasteners.table = {
   '#4-40': {
     'family':           'SAE',
     'series':           'UNC',
-    'head_height':      0.080   * 25.4,
+    'head_height':      0.120   * 25.4,
+//    'head_height':      0.080   * 25.4,
     'head_radius':      0.219/2 * 25.4,
     'clearance_radius': 0.129/2 * 25.4,
     'major_radius':     0.112/2 * 24.5,

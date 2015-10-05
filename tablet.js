@@ -3,6 +3,7 @@ function Tablet() {
   this.battery = null;
   this.pi = null;
   this.charger = null;
+  this.sw = null;
 
   // Outside exterior dimensions.
   this.width=180;
@@ -14,15 +15,16 @@ function Tablet() {
   this.bottomdepth=22;
   this.middledepth=3;
 
+  this.middlethickness=5;
   this.middleshrink=0.75;
   this.caselipheight=0.4;
-  this.caselipthickness=0.4;
+  this.caselipthickness=0.5;
 
   this.bezel=1; // Thickness of top case over display frame.
 
   // Our corner cutout for connectors.
-  this.cutoutwidth=65;
-  this.cutoutheight=65;
+  this.cutoutwidth=62;
+  this.cutoutheight=66;
   this.cutoutdepth=this.bottomdepth-this.thickness;
   this.cutoutrad=4;
 
@@ -55,7 +57,7 @@ Tablet.prototype.topcase_csg = function() {
   }); 
 
   csg=csg.union(cag.extrude({
-    offset: [0, 0, -this.topdepth],
+    offset: [0, 0, -this.topdepth-this.caselipheight],
   }).translate([0,0,1])); 
 
   cag = CAG.roundedRectangle({
@@ -63,11 +65,27 @@ Tablet.prototype.topcase_csg = function() {
     corner2: [ this.width/2-this.thickness,  this.height/2-this.thickness],
     roundradius: this.caserad-this.thickness
   }); 
-
+/*
   csg=csg.subtract(cag.extrude({
     offset: [0, 0, -this.topdepth],
   }).translate([0,0,-this.thickness+this.bezel]));
+ */
+  csg=csg.subtract(cag.extrude({
+    offset: [0, 0, -this.topdepth],
+  }).translate([0,0,-this.display.properties.thickness]));
 
+  // Case lip.
+  cag = CAG.roundedRectangle({
+    corner1: [-this.width/2+this.caselipthickness, -this.height/2+this.caselipthickness],
+    corner2: [ this.width/2-this.caselipthickness,  this.height/2-this.caselipthickness],
+    roundradius: this.caserad-this.caselipthickness
+  }); 
+
+  csg=csg.subtract(cag.extrude({
+    offset: [0, 0, -this.caselipheight],
+  }).translate([0,0,-this.topdepth+this.bezel]));
+
+ 
   // We have to build up the inside of the case to support the display.
   build = new CSG();
 
@@ -113,6 +131,7 @@ Tablet.prototype.topcase_csg = function() {
 
   // Add screw bosses so we can close this thing up.
   var bosses = new CSG();
+  var bossclearance = new CSG();
   var barbsert = fasteners.barbsert_csg(this.screwsize);
   var boss = CSG.cylinder({
     start: [0,0,0],
@@ -120,15 +139,15 @@ Tablet.prototype.topcase_csg = function() {
     radius: barbsert.properties.params.barbsert_radius+this.bossthickness
   });
 
-  boss=boss.subtract(
-    barbsert.properties.hole.rotateY(180).translate([0,0,-this.topdepth+this.bezel])
-  );
+  var bosshole = barbsert.properties.hole.rotateY(180).translate([0,0,-this.topdepth+this.bezel]);
 
   this.screws.forEach(function(position){
     bosses=bosses.union(boss.translate(position)); 
+    bossclearance=bossclearance.union(bosshole.translate(position));
   });
 
   csg=csg.union(bosses);
+  csg=csg.subtract(bossclearance);
 
   // Make sure we can see out the front :)
   csg = csg.subtract(this.display.properties.cutout);
@@ -306,6 +325,23 @@ Tablet.prototype.bottomcase_csg = function() {
     offset: [0, 0, this.thickness],
   }).translate([0,0,-this.bottomdepth]));
 
+  // Case lip.
+  cag = CAG.roundedRectangle({
+    corner1: [-this.width/2, -this.height/2],
+    corner2: [ this.width/2,  this.height/2],
+    roundradius: this.caserad
+  }); 
+
+  cag = cag.subtract( CAG.roundedRectangle({
+    corner1: [-this.width/2+this.caselipthickness, -this.height/2+this.caselipthickness],
+    corner2: [ this.width/2-this.caselipthickness,  this.height/2-this.caselipthickness],
+    roundradius: this.caserad-this.caselipthickness
+  })); 
+
+  csg=csg.union(cag.extrude({
+    offset: [0, 0, this.caselipheight],
+  }));
+
   // Screw bosses.
   var bossbuild = new CSG();
   var bosscut = new CSG();
@@ -331,12 +367,35 @@ Tablet.prototype.bottomcase_csg = function() {
     radiusEnd: screw.properties.params.clearance_radius + this.bossthickness
   }));
 
-  var screwclearance = screw.properties.clearance.rotateY(180).translate([0,0,screwbase]);
+  var screwclearance = screw.properties.clearance;
+
+  screwclearance=screwclearance.subtract(
+    CSG.cube({
+      radius:[3,3,0.6/2],
+      center:[0,0,-0.6/2]
+  }));
+
+  screwclearance=screwclearance.rotateY(180).translate([0,0,screwbase]);
 
   this.screws.forEach(function(position){
     bossbuild=bossbuild.union(boss.translate(position)); 
     bosscut=bosscut.union(screwclearance.translate(position)); 
   });
+
+  var bossfins = new CSG();
+  bossfins = bossfins.union( CSG.cube({
+    corner1: [-this.thickness/2,0,-this.bottomdepth],
+    corner2: [+this.thickness/2,this.caserad,-this.thickness],
+  }));
+
+  bossfins = bossfins.union( CSG.cube({
+    corner1: [0,-this.thickness/2,-this.bottomdepth],
+    corner2: [this.caserad,+this.thickness/2,-this.thickness],
+  }));
+
+  bossbuild=bossbuild.union(bossfins.rotateZ(90).translate(this.screws[1]));
+  bossbuild=bossbuild.union(bossfins.translate(this.screws[2]));
+  bossbuild=bossbuild.union(bossfins.rotateZ(-90).translate(this.screws[3]));
 
   csg=csg.union(bossbuild);
   csg=csg.union(this.cornerbuild_csg());
@@ -348,6 +407,18 @@ Tablet.prototype.bottomcase_csg = function() {
   //csg=csg.subtract(this.cornercutout_csg());
   csg=csg.subtract(this.cornercutoutinside_csg());
 
+  // Hex nut for tripod mount.
+  csg=csg.union(
+    CSG.cube({
+      corner1: [-8,  0, 0],
+      corner2: [ 8,-7, this.bottomdepth]
+    }).translate([0,this.height/2,-this.bottomdepth])
+  );
+  csg=csg.subtract(
+    hex_csg( 7/16*25.4-0.4, 0.226*25.4 ).rotateX(90).rotateY(90).translate([0,this.height/2,-this.bottomdepth/2])
+  );
+
+  // Translate into the global coordinate system, and apply submodules.
   csg=csg.translate([0,0,-this.topdepth+this.bezel-this.middledepth]);
 
   csg=csg.subtract(this.pi.properties.clearance);
@@ -360,6 +431,39 @@ Tablet.prototype.bottomcase_csg = function() {
 
   csg=csg.subtract(this.battery.properties.clearance);
   csg=csg.union(this.battery.properties.bracket);
+
+  csg=csg.union(
+    CSG.cube({
+      corner1: [-6,0,-this.bottomdepth-this.middledepth-this.topdepth+this.bezel],
+      corner2: [6,-5,-this.bottomdepth-this.middledepth-this.topdepth+this.bezel+10]
+    }).translate([55,65,0])
+  );
+  csg=csg.subtract(this.sw.properties.clearance);
+//  csg=csg.union(this.battery.properties.bracket);
+
+  // Screen supports.
+  var self=this;
+  [
+    [-this.width/2+10,46,0],
+    [+this.width/2-10,46,0]
+  ].forEach(function (position){
+    csg=csg.union(CSG.cylinder({
+      start: [0,0,-self.bottomdepth-self.middledepth-self.topdepth],
+      end:   [0,0,self.bezel-self.display.properties.thickness],
+      radius: 6 
+    }).subtract(CSG.cylinder({
+      start: [0,0,-self.bottomdepth-self.middledepth-self.topdepth],
+      end:   [0,0,self.bezel-self.display.properties.thickness],
+      radius: 4 
+    })).translate(position));
+  });
+
+  // USB cable notch.
+
+  csg=csg.subtract(CSG.cube({
+    center:[-20,-60,this.bezel-this.topdepth-this.middledepth-2],
+    radius:[10,1.5,2]
+  }));
 
 
   var plane = CSG.Plane.fromNormalAndPoint([0,0,-1], [0, 0, -this.bottomdepth-this.topdepth+this.bezel-this.middledepth]);
@@ -380,9 +484,9 @@ Tablet.prototype.middlecase_csg = function() {
   }); 
 
   cag = cag.subtract(CAG.roundedRectangle({
-    corner1: [-this.width/2+this.thickness+this.middleshrink, -this.height/2+this.thickness+this.middleshrink],
-    corner2: [ this.width/2-this.thickness-this.middleshrink,  this.height/2-this.thickness-this.middleshrink],
-    roundradius: this.caserad-this.thickness
+    corner1: [-this.width/2+this.middlethickness+this.middleshrink, -this.height/2+this.middlethickness+this.middleshrink],
+    corner2: [ this.width/2-this.middlethickness-this.middleshrink,  this.height/2-this.middlethickness-this.middleshrink],
+    roundradius: this.caserad-this.middlethickness
   })); 
 
   cag = cag.union(this.cornerbuild_cag());

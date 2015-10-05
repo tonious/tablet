@@ -69,9 +69,9 @@ function main(params) {
 
   var screen = screen_csg();
   var board = RaspberryPi.modelbplus_csg().rotateZ(180).translate([60,0,-28]);
-  var charger = Adafruit.powerboost1000c_csg().rotateZ(90).translate([-60,2.5,-28]);
-  var battery = Adafruit.lipo6600_csg().rotateZ(90).translate([41,33,-18]);
-  var sw = Components.mhs1104_csg().rotateZ(180).rotateX(90).translate([-50,1,-25]);
+  var charger = Adafruit.powerboost1000c_csg().rotateZ(-90).translate([20,63,-28]);
+  var battery = Adafruit.lipo6600_csg().rotateZ(90).translate([-41,33,-18]);
+  var sw = Components.mhs1104_csg().rotateZ(180).rotateX(-90).translate([55,63,-25]);
 
   var tab = new Tablet();
 

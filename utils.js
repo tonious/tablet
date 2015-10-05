@@ -42,8 +42,8 @@ utils.holddown_csg = function() {
   var height=2.4+2;
   var width=3;
   var thickness=1.5;
-  var overhang=0.5;
-  var bevel=1/2;
+  var overhang=0.01;
+  var bevel=0.4;
   var topthick=1.4;
 
   var cag = CAG.fromPoints([
@@ -62,8 +62,8 @@ utils.holddown_csg = function() {
 
   cag=CAG.roundedRectangle({
     center: [-thickness/2,0],
-    radius: [(thickness+1)/2, (width+1)/2],
-    roundradius: 1
+    radius: [(thickness+2)/2, (width+2)/2],
+    roundradius: 2 
   });
 
   csg.properties.clearance=cag.extrude({offset:[0,0,height]});
