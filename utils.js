@@ -42,8 +42,8 @@ utils.holddown_csg = function() {
   var height=2.4+2;
   var width=3;
   var thickness=1.5;
-  var overhang=0.01;
-  var bevel=0.4;
+  var overhang=0.2;
+  var bevel=0.5;
   var topthick=1.4;
 
   var cag = CAG.fromPoints([
